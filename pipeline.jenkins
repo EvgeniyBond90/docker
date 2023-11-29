@@ -1,0 +1,40 @@
+pipeline {
+    agent{ label 'master' }
+    
+    stages{
+        stage('Docker version'){
+            steps {
+                sh "echo $USER"
+                sh 'docker version'
+            }
+        }
+        stage('Delete workspace before build starts'){
+            steps {
+                echo 'Deleting workspace'
+                deleteDir()
+            }    
+        } 
+        stage('checkout'){
+            steps{
+                git branch: 'main',
+                    url: "https://github.com/EvgeniyBond90/docker.git"
+        sh 'pwd'
+        sh 'ls -la'
+        }
+            }
+        stage('Build docker image'){
+            steps{
+                    sh 'docker build -t efilimonov/jenkins-images:0.1 .'
+            }
+        }
+        stage('Push docker image to DockerHub'){
+            steps{
+                withDockerRegistry(credentialsId: 'dockerhub-cred-efilimonov', url: 'https://index.docker.io/v1/'){
+                    sh '''
+                       docker push efilimonov/jenkins-images:0.1
+                       '''
+            }
+        }
+    }
+  }
+}
